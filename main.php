@@ -1,6 +1,9 @@
 <?php
 // Inicia a sessão
 session_start();
+require_once "./src/Store.php";
+$databaseDirectory = __DIR__ . "/dadosPedidos";
+$pedidosStore = new \SleekDB\Store("pedidos", $databaseDirectory);
 
 // Verifica se o usuário está logado
 if (!isset($_SESSION['restaurantId'])) {
@@ -30,6 +33,12 @@ function gerarDescricaoPedido() {
     ];
     return $descricoes[array_rand($descricoes)]; // Retorna uma descrição aleatória
 }
+
+// Buscar pedidos em andamento do banco de dados
+$pedidosAndamento = $pedidosStore->findBy(['status', '=', 'andamento']);
+
+// Buscar pedidos concluídos do banco de dados
+$pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
 ?>
 
 <!DOCTYPE html>
@@ -178,6 +187,54 @@ function gerarDescricaoPedido() {
             border: 1px solid #ddd;
             border-radius: 5px;
         }
+
+        /* Estilo para os itens na lista de filtros */
+        #filtroResultados .order-item {
+            display: flex;
+            justify-content: space-between; /* Distribui o conteúdo entre o texto e o status */
+            padding: 15px;
+            border-radius: 8px; /* Bordas arredondadas para suavizar */
+            background-color: #f9f9f9; /* Fundo suave para o item */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+            margin-bottom: 10px; /* Espaço entre os itens */
+            transition: background-color 0.3s ease; /* Transição para o fundo */
+            width: 100%; /* Faz o item ocupar toda a largura disponível */
+            box-sizing: border-box; /* Garante que o padding não quebre o layout */
+            font-size: 14px;
+        }
+
+        /* Efeito de hover (quando passar o mouse sobre o item) */
+        #filtroResultados .order-item:hover {
+            background-color: #e0f7fa; /* Cor de fundo suave ao passar o mouse */
+        }
+
+        /* Estilo para o container dentro de cada item */
+        .pedido-container {
+            display: flex;
+            justify-content: space-between; /* Espaça o texto e o status */
+            align-items: center; /* Alinha os itens verticalmente no centro */
+            width: 100%;
+        }
+
+        /* Estilo para o texto do pedido */
+        .pedido-text {
+            flex-grow: 1; /* Faz o texto ocupar todo o espaço disponível */
+            text-align: left;
+            color: #333; /* Cor do texto */
+            font-weight: 500; /* Leve destaque no texto */
+            overflow: hidden;
+            text-overflow: ellipsis; /* Adiciona elipse quando o texto for muito longo */
+            white-space: nowrap; /* Impede que o texto quebre em várias linhas */
+        }
+
+        /* Estilo para o status do pedido */
+        .pedido-status {
+            text-align: right;
+            color: #007BFF; /* Cor para o status, pode ser alterada conforme necessário */
+            font-weight: bold;
+            text-transform: uppercase; /* Faz o status ficar em maiúsculas */
+        }
+
     </style>
 </head>
 <body>
@@ -193,26 +250,15 @@ function gerarDescricaoPedido() {
     <!-- Conteúdo dos pedidos em andamento -->
     <div id="andamento" class="content active">
         <h1>Pedidos em Andamento</h1>
-
         <ol id="pedidoEmAndamentoList">
-            <li class="order-item">
-                <span class="order-id">Mesa #<?php echo gerarNumeroAleatorio(); ?></span>
-                <span class="order-description"><?php echo gerarDescricaoPedido(); ?></span>
-                <button class="button green" onclick="finalizarPedido(this)">Finalizar</button>
-                <button class="button print" onclick="imprimirComanda(this)">Imprimir Comanda</button>
-            </li>
-            <li class="order-item">
-                <span class="order-id">Mesa #<?php echo gerarNumeroAleatorio(); ?></span>
-                <span class="order-description"><?php echo gerarDescricaoPedido(); ?></span>
-                <button class="button green" onclick="finalizarPedido(this)">Finalizar</button>
-                <button class="button print" onclick="imprimirComanda(this)">Imprimir Comanda</button>
-            </li>
-            <li class="order-item">
-                <span class="order-id">Mesa #<?php echo gerarNumeroAleatorio(); ?></span>
-                <span class="order-description"><?php echo gerarDescricaoPedido(); ?></span>
-                <button class="button green" onclick="finalizarPedido(this)">Finalizar</button>
-                <button class="button print" onclick="imprimirComanda(this)">Imprimir Comanda</button>
-            </li>
+            <?php foreach ($pedidosAndamento as $pedido): ?>
+                <li class="order-item">
+                    <span class="order-id">Mesa #<?php echo $pedido['mesa']; ?></span>
+                    <span class="order-description"><?php echo $pedido['descricao']; ?></span>
+                    <button class="button green" onclick="finalizarPedido(this, <?php echo $pedido['_id']; ?>)">Finalizar</button>
+                    <button class="button print" onclick="imprimirComanda(this)">Imprimir Comanda</button>
+                </li>
+            <?php endforeach; ?>
         </ol>
     </div>
 
@@ -220,22 +266,15 @@ function gerarDescricaoPedido() {
     <div id="concluidos" class="content">
         <h1>Pedidos Concluídos</h1>
         <ol id="pedidoConcluidoList">
+        <?php foreach ($pedidosConcluidos as $pedido): ?>
             <li class="order-item">
-                <span class="order-id">Mesa #<?php echo gerarNumeroAleatorio(); ?></span>
-                <span class="order-description"><?php echo gerarDescricaoPedido(); ?></span>
-                <button class="button red" onclick="retornarPedido(this)">Retornar para Em Andamento</button>
+                <span class="order-id">Mesa #<?php echo $pedido['mesa']; ?></span>
+                <span class="order-description"><?php echo $pedido['descricao']; ?></span>
+                <button class="button red" onclick="retornarPedido(this, <?php echo $pedido['_id']; ?>)">Retornar para Em Andamento</button>
             </li>
-            <li class="order-item">
-                <span class="order-id">Mesa #<?php echo gerarNumeroAleatorio(); ?></span>
-                <span class="order-description"><?php echo gerarDescricaoPedido(); ?></span>
-                <button class="button red" onclick="retornarPedido(this)">Retornar para Em Andamento</button>
-            </li>
-            <li class="order-item">
-                <span class="order-id">Mesa #<?php echo gerarNumeroAleatorio(); ?></span>
-                <span class="order-description"><?php echo gerarDescricaoPedido(); ?></span>
-                <button class="button red" onclick="retornarPedido(this)">Retornar para Em Andamento</button>
-            </li>
-        </ol>
+        <?php endforeach; ?>
+    </ol>
+
     </div>
 
     <!-- Conteúdo de filtros -->
@@ -265,15 +304,27 @@ function gerarDescricaoPedido() {
     <div class="approval">
         <h2>Aprovação</h2>
         <ol>
-            <?php for ($i = 1; $i <= 3; $i++) { ?>
-                <li class="service-item">
+        <li class="service-item">
                     <span>Mesa <?php echo gerarNumeroAleatorio(); ?></span>
                     <div>
-                        <button class="button green">Aceitar</button>
+                        <button class="button green" onclick="aceitarPedido(this)">Aceitar</button>
                         <button class="button red">Rejeitar</button>
                     </div>
                 </li>
-            <?php } ?>
+                <li class="service-item">
+                    <span>Mesa <?php echo gerarNumeroAleatorio(); ?></span>
+                    <div>
+                        <button class="button green" onclick="aceitarPedido(this)">Aceitar</button>
+                        <button class="button red">Rejeitar</button>
+                    </div>
+                </li>
+                <li class="service-item">
+                    <span>Mesa <?php echo gerarNumeroAleatorio(); ?></span>
+                    <div>
+                        <button class="button green" onclick="aceitarPedido(this)">Aceitar</button>
+                        <button class="button red">Rejeitar</button>
+                    </div>
+                </li>
         </ol>
     </div>
 </div>
@@ -359,6 +410,63 @@ function gerarDescricaoPedido() {
         listaEmAndamento.appendChild(clonePedido);
     }
 
+    function aceitarPedido(button) {
+        const pedido = button.closest('.service-item'); // Encontra o item da mesa
+        const listaEmAndamento = document.getElementById('pedidoEmAndamentoList'); // Lista de pedidos em andamento
+        
+        // Cria um novo item de pedido com as informações da mesa e descrição
+        const numeroMesa = gerarNumeroAleatorio();
+        const descricaoPedido = gerarDescricaoPedido();
+        
+        const novoPedido = {
+            Mesa: numeroMesa,
+            Itens: [descricaoPedido], // Aqui você pode adicionar os itens específicos se necessário
+            Status: 'Em Andamento'
+        };
+
+        // Envia os dados do pedido para o servidor via AJAX
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'salvar_pedido.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log('Pedido salvo no banco de dados');
+                // Cria o elemento na lista "Em Andamento"
+                const novoItemPedido = document.createElement('li');
+                novoItemPedido.classList.add('order-item');
+                novoItemPedido.innerHTML = `
+                    <span class="order-id">Mesa #${numeroMesa}</span>
+                    <span class="order-description">${descricaoPedido}</span>
+                    <button class="button green" onclick="finalizarPedido(this)">Finalizar</button>
+                    <button class="button print" onclick="imprimirComanda(this)">Imprimir Comanda</button>
+                `;
+                listaEmAndamento.appendChild(novoItemPedido);
+                pedido.remove(); // Remove o pedido da lista de aprovação
+            }
+        };
+        xhr.send(JSON.stringify(novoPedido));
+    }
+
+
+    // Função para gerar número aleatório de mesa (simula o comportamento do PHP no JS)
+    function gerarNumeroAleatorio() {
+        return Math.floor(Math.random() * 100) + 1; // Gera um número aleatório entre 1 e 100
+    }
+
+    // Função para gerar uma descrição genérica do pedido
+    function gerarDescricaoPedido() {
+        const descricoes = [
+            "Pedido com diversos itens de comida e bebidas.",
+            "Mesa com aperitivos e prato principal.",
+            "Pedido de entrada, prato principal e sobremesa.",
+            "Pedido variado com bebidas e entradas.",
+            "Pedido com especialidades da casa.",
+            "Mesa com prato vegetariano e sucos naturais."
+        ];
+        return descricoes[Math.floor(Math.random() * descricoes.length)];
+    }
+
+
     // Função para aplicar os filtros
     function filtrarPedidos() {
         let mesa = document.getElementById('mesa').value;
@@ -398,17 +506,32 @@ function gerarDescricaoPedido() {
         const listaFiltros = document.getElementById('filtroResultados');
         listaFiltros.innerHTML = '';
 
-        // Adiciona os pedidos filtrados à aba de filtros
+        // Adiciona os pedidos filtrados à aba de filtros, mostrando o formato desejado
         pedidosFiltrados.forEach(pedido => {
             const novoItem = document.createElement('li');
             novoItem.classList.add('order-item');
-            novoItem.innerHTML = pedido.innerHTML; // Copia o conteúdo do pedido
+            
+            // Obtém os dados do pedido
+            let numeroMesa = pedido.querySelector('.order-id').textContent.replace('Mesa #', '');
+            let descricaoPedido = pedido.querySelector('.order-description').textContent;
+            let statusPedido = pedido.closest('.content').id === 'andamento' ? 'Em Andamento' : 'Concluído';
+
+            // Formatação do conteúdo com Flexbox
+            novoItem.innerHTML = `
+                <div class="pedido-container">
+                    <span class="pedido-text">Mesa ${numeroMesa} - ${descricaoPedido}</span>
+                    <span class="pedido-status">${statusPedido}</span>
+                </div>
+            `;
+
+            // Adiciona o novo item à lista de filtros
             listaFiltros.appendChild(novoItem);
         });
 
         // Exibe a aba de filtros
         changeTab('filtros');
     }
+
 </script>
 
 </body>
