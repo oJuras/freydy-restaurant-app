@@ -12,6 +12,12 @@ if (!isset($_SESSION['restaurantId'])) {
     exit();
 }
 
+// Busca todos os pedidos em andamento
+$pedidosAndamento = $pedidosStore->findBy(["Status", "==", "Em Andamento"]);
+
+// Busca todos os pedidos concluídos
+$pedidosConcluidos = $pedidosStore->findBy(["Status", "==", "Concluído"]);
+
 // Obtém as credenciais da sessão
 $restaurantId = $_SESSION['restaurantId'];
 $password = $_SESSION['password'];
@@ -33,12 +39,6 @@ function gerarDescricaoPedido() {
     ];
     return $descricoes[array_rand($descricoes)]; // Retorna uma descrição aleatória
 }
-
-// Buscar pedidos em andamento do banco de dados
-$pedidosAndamento = $pedidosStore->findBy(['status', '=', 'andamento']);
-
-// Buscar pedidos concluídos do banco de dados
-$pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
 ?>
 
 <!DOCTYPE html>
@@ -234,7 +234,6 @@ $pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
             font-weight: bold;
             text-transform: uppercase; /* Faz o status ficar em maiúsculas */
         }
-
     </style>
 </head>
 <body>
@@ -253,9 +252,9 @@ $pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
         <ol id="pedidoEmAndamentoList">
             <?php foreach ($pedidosAndamento as $pedido): ?>
                 <li class="order-item">
-                    <span class="order-id">Mesa #<?php echo $pedido['mesa']; ?></span>
-                    <span class="order-description"><?php echo $pedido['descricao']; ?></span>
-                    <button class="button green" onclick="finalizarPedido(this, <?php echo $pedido['_id']; ?>)">Finalizar</button>
+                    <span class="order-id">Mesa #<?php echo $pedido['Mesa']; ?></span>
+                    <span class="order-description"><?php echo implode(", ", $pedido['Itens']); ?></span>
+                    <button class="button green" onclick="finalizarPedido(this, '<?php echo $pedido['_id']; ?>')">Finalizar</button>
                     <button class="button print" onclick="imprimirComanda(this)">Imprimir Comanda</button>
                 </li>
             <?php endforeach; ?>
@@ -266,15 +265,14 @@ $pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
     <div id="concluidos" class="content">
         <h1>Pedidos Concluídos</h1>
         <ol id="pedidoConcluidoList">
-        <?php foreach ($pedidosConcluidos as $pedido): ?>
-            <li class="order-item">
-                <span class="order-id">Mesa #<?php echo $pedido['mesa']; ?></span>
-                <span class="order-description"><?php echo $pedido['descricao']; ?></span>
-                <button class="button red" onclick="retornarPedido(this, <?php echo $pedido['_id']; ?>)">Retornar para Em Andamento</button>
-            </li>
-        <?php endforeach; ?>
-    </ol>
-
+            <?php foreach ($pedidosConcluidos as $pedido): ?>
+                <li class="order-item">
+                    <span class="order-id">Mesa #<?php echo $pedido['Mesa']; ?></span>
+                    <span class="order-description"><?php echo implode(", ", $pedido['Itens']); ?></span>
+                    <button class="button red" onclick="retornarPedido(this, '<?php echo $pedido['_id']; ?>')">Retornar para Em Andamento</button>
+                </li>
+            <?php endforeach; ?>
+        </ol>
     </div>
 
     <!-- Conteúdo de filtros -->
@@ -304,27 +302,27 @@ $pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
     <div class="approval">
         <h2>Aprovação</h2>
         <ol>
-        <li class="service-item">
-                    <span>Mesa <?php echo gerarNumeroAleatorio(); ?></span>
-                    <div>
-                        <button class="button green" onclick="aceitarPedido(this)">Aceitar</button>
-                        <button class="button red">Rejeitar</button>
-                    </div>
-                </li>
-                <li class="service-item">
-                    <span>Mesa <?php echo gerarNumeroAleatorio(); ?></span>
-                    <div>
-                        <button class="button green" onclick="aceitarPedido(this)">Aceitar</button>
-                        <button class="button red">Rejeitar</button>
-                    </div>
-                </li>
-                <li class="service-item">
-                    <span>Mesa <?php echo gerarNumeroAleatorio(); ?></span>
-                    <div>
-                        <button class="button green" onclick="aceitarPedido(this)">Aceitar</button>
-                        <button class="button red">Rejeitar</button>
-                    </div>
-                </li>
+            <li class="service-item">
+                <span>Mesa <?php echo gerarNumeroAleatorio(); ?></span>
+                <div>
+                    <button class="button green" onclick="aceitarPedido(this)">Aceitar</button>
+                    <button class="button red">Rejeitar</button>
+                </div>
+            </li>
+            <li class="service-item">
+                <span>Mesa <?php echo gerarNumeroAleatorio(); ?></span>
+                <div>
+                    <button class="button green" onclick="aceitarPedido(this)">Aceitar</button>
+                    <button class="button red">Rejeitar</button>
+                </div>
+            </li>
+            <li class="service-item">
+                <span>Mesa <?php echo gerarNumeroAleatorio(); ?></span>
+                <div>
+                    <button class="button green" onclick="aceitarPedido(this)">Aceitar</button>
+                    <button class="button red">Rejeitar</button>
+                </div>
+            </li>
         </ol>
     </div>
 </div>
@@ -356,60 +354,76 @@ $pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
     }
 
     // Função para finalizar o pedido e mover para pedidos concluídos
-    function finalizarPedido(button) {
+    function finalizarPedido(button, pedidoId) {
         const pedido = button.closest('.order-item');
         const listaEmAndamento = document.getElementById('pedidoEmAndamentoList');
         const listaConcluidos = document.getElementById('pedidoConcluidoList');
 
-        // Remove o pedido da lista de andamento
-        listaEmAndamento.removeChild(pedido);
+        // Envia uma requisição ao servidor para atualizar o status do pedido
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'atualizar_pedido.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // Remove o pedido da lista de andamento
+                listaEmAndamento.removeChild(pedido);
 
-        // Adiciona o pedido na lista de concluídos
-        const clonePedido = pedido.cloneNode(true);
-        // Remover o botão "Imprimir Comanda" no pedido concluído
-        const imprimirButton = clonePedido.querySelector('.button.print');
-        if (imprimirButton) {
-            clonePedido.removeChild(imprimirButton);
-        }
+                // Adiciona o pedido na lista de concluídos
+                const clonePedido = pedido.cloneNode(true);
+                const imprimirButton = clonePedido.querySelector('.button.print');
+                if (imprimirButton) {
+                    clonePedido.removeChild(imprimirButton);
+                }
 
-        const retornarButton = clonePedido.querySelector('.button');
-        retornarButton.textContent = "Retornar para Em Andamento";
-        retornarButton.classList.remove('green');
-        retornarButton.classList.add('red');
-        retornarButton.setAttribute("onclick", "retornarPedido(this)");
+                const retornarButton = clonePedido.querySelector('.button');
+                retornarButton.textContent = "Retornar para Em Andamento";
+                retornarButton.classList.remove('green');
+                retornarButton.classList.add('red');
+                retornarButton.setAttribute("onclick", `retornarPedido(this, '${pedidoId}')`);
 
-        listaConcluidos.appendChild(clonePedido);
+                listaConcluidos.appendChild(clonePedido);
+            }
+        };
+        xhr.send(JSON.stringify({ id: pedidoId, status: 'Concluído' }));
     }
 
     // Função para retornar o pedido para "Em Andamento"
-    function retornarPedido(button) {
+    function retornarPedido(button, pedidoId) {
         const pedido = button.closest('.order-item');
         const listaEmAndamento = document.getElementById('pedidoEmAndamentoList');
         const listaConcluidos = document.getElementById('pedidoConcluidoList');
 
-        // Remove o pedido da lista de concluídos
-        listaConcluidos.removeChild(pedido);
+        // Envia uma requisição ao servidor para atualizar o status do pedido
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'atualizar_pedido.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // Remove o pedido da lista de concluídos
+                listaConcluidos.removeChild(pedido);
 
-        // Adiciona o pedido de volta na lista de em andamento
-        const clonePedido = pedido.cloneNode(true);
-        const finalizarButton = clonePedido.querySelector('.button');
-        finalizarButton.textContent = "Finalizar";
-        finalizarButton.classList.remove('red');
-        finalizarButton.classList.add('green');
-        finalizarButton.setAttribute("onclick", "finalizarPedido(this)");
+                // Adiciona o pedido de volta na lista de em andamento
+                const clonePedido = pedido.cloneNode(true);
+                const finalizarButton = clonePedido.querySelector('.button');
+                finalizarButton.textContent = "Finalizar";
+                finalizarButton.classList.remove('red');
+                finalizarButton.classList.add('green');
+                finalizarButton.setAttribute("onclick", `finalizarPedido(this, '${pedidoId}')`);
 
-        // Recria o botão "Imprimir Comanda" no pedido retornado
-        const imprimirButton = document.createElement('button');
-        imprimirButton.classList.add('button', 'print');
-        imprimirButton.textContent = "Imprimir Comanda";
-        imprimirButton.setAttribute("onclick", "imprimirComanda(this)");
+                // Recria o botão "Imprimir Comanda"
+                const imprimirButton = document.createElement('button');
+                imprimirButton.classList.add('button', 'print');
+                imprimirButton.textContent = "Imprimir Comanda";
+                imprimirButton.setAttribute("onclick", "imprimirComanda(this)");
 
-        // Adiciona o botão "Imprimir Comanda" ao pedido
-        clonePedido.appendChild(imprimirButton);
-
-        listaEmAndamento.appendChild(clonePedido);
+                clonePedido.appendChild(imprimirButton);
+                listaEmAndamento.appendChild(clonePedido);
+            }
+        };
+        xhr.send(JSON.stringify({ id: pedidoId, status: 'Em Andamento' }));
     }
 
+    // Função para aceitar um pedido na lista de aprovação
     function aceitarPedido(button) {
         const pedido = button.closest('.service-item'); // Encontra o item da mesa
         const listaEmAndamento = document.getElementById('pedidoEmAndamentoList'); // Lista de pedidos em andamento
@@ -447,7 +461,6 @@ $pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
         xhr.send(JSON.stringify(novoPedido));
     }
 
-
     // Função para gerar número aleatório de mesa (simula o comportamento do PHP no JS)
     function gerarNumeroAleatorio() {
         return Math.floor(Math.random() * 100) + 1; // Gera um número aleatório entre 1 e 100
@@ -465,7 +478,6 @@ $pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
         ];
         return descricoes[Math.floor(Math.random() * descricoes.length)];
     }
-
 
     // Função para aplicar os filtros
     function filtrarPedidos() {
@@ -531,7 +543,6 @@ $pedidosConcluidos = $pedidosStore->findBy(['status', '=', 'concluido']);
         // Exibe a aba de filtros
         changeTab('filtros');
     }
-
 </script>
 
 </body>
