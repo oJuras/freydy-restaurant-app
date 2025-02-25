@@ -1,63 +1,46 @@
 <?php
-// Inicia a sessão
 session_start();
 
-// Defina suas credenciais de conexão com o banco de dados
-$servername = "localhost";  // ou o endereço do seu servidor de banco de dados
-$username = "root";         // Usuário do banco de dados
-$password = "usbw";             // Senha do banco de dados
-$dbname = "RestauranteDb";  // Nome do banco de dados
+$servername = "localhost";  
+$username = "root";         
+$password = "usbw";             
+$dbname = "RestauranteDb";  
 
-// Crie uma conexão
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Verifique a conexão
 if ($conn->connect_error) {
     die("Conexão falhou: " . $conn->connect_error);
 }
 
-// Defina a variável para exibir mensagem de erro
 $error_message = "";
 
-// Verifique se os dados foram enviados via POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $restaurantId = $_POST['restaurantId'];
     $password = $_POST['password'];
 
-    // Prepare a consulta SQL
     $sql = "SELECT * FROM restauranteLogin WHERE restauranteId = ? AND senha = ?";
     
-    // Prepare a consulta
     $stmt = $conn->prepare($sql);
     
-    // Bind os parâmetros
-    $stmt->bind_param("is", $restaurantId, $password); // 'i' para inteiro e 's' para string
+    $stmt->bind_param("is", $restaurantId, $password); 
 
-    // Execute a consulta
     $stmt->execute();
     
-    // Armazene o resultado
     $result = $stmt->get_result();
 
-    // Verifique se o restauranteId e senha estão corretos
     if ($result->num_rows > 0) {
-        // Login bem-sucedido: Salvar na sessão
         $_SESSION['restaurantId'] = $restaurantId;
         $_SESSION['password'] = $password;
 
-        // Redireciona para a página principal
         header("Location: main.php");
-        exit(); // Encerra o script após o redirecionamento
+        exit(); 
     } else {
-        // Login falhou
         $error_message = "ID de restaurante ou senha inválidos!";
     }
 
-    // Feche a consulta
     $stmt->close();
 }
 
-// Feche a conexão com o banco de dados
 $conn->close();
 ?>
 
@@ -75,7 +58,7 @@ $conn->close();
             align-items: center;
             height: 100vh;
             margin: 0;
-            background: linear-gradient(45deg, #8B3A3A, #D2691E); /* Gradiente de vermelho vinho e marrom */
+            background: linear-gradient(45deg, #8B3A3A, #D2691E); 
             background-size: 400% 400%;
             animation: gradientAnimation 10s ease infinite;
         }
@@ -93,12 +76,12 @@ $conn->close();
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 300px;
             text-align: center;
-            background-color: rgba(255, 255, 255, 0.9); /* Fundo branco com leve transparência */
+            background-color: rgba(255, 255, 255, 0.9); 
         }
 
         h2 {
             margin-bottom: 20px;
-            color: #8B3A3A; /* Cor vinho */
+            color: #8B3A3A; 
         }
 
         .input-group {
@@ -108,7 +91,7 @@ $conn->close();
         input {
             width: 100%;
             padding: 8px;
-            border: 1px solid #D2691E; /* Cor marrom */
+            border: 1px solid #D2691E; 
             border-radius: 4px;
             font-size: 16px;
         }
@@ -116,7 +99,7 @@ $conn->close();
         button {
             width: 100%;
             padding: 10px;
-            background-color: #8B3A3A; /* Cor vinho */
+            background-color: #8B3A3A;
             color: white;
             border: none;
             border-radius: 4px;
@@ -125,11 +108,11 @@ $conn->close();
         }
 
         button:hover {
-            background-color: #D2691E; /* Cor marrom para hover */
+            background-color: #D2691E; 
         }
 
         .error {
-            color: #D2691E; /* Cor marrom */
+            color: #D2691E;
             font-size: 14px;
             margin-top: 10px;
         }
