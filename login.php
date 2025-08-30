@@ -1,142 +1,80 @@
 <?php
-session_start();
+/**
+ * Página de Login
+ * Freydy Restaurant App
+ */
 
-$servername = "localhost";  
-$username = "root";         
-$password = "usbw";             
-$dbname = "RestauranteDb";  
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Conexão falhou: " . $conn->connect_error);
-}
+require_once 'includes/auth.php';
 
 $error_message = "";
 
+// Comentado temporariamente para evitar loop de redirecionamento
+// if ($auth->estaLogado()) {
+//     header("Location: dashboard.php");
+//     exit();
+// }
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $restaurantId = $_POST['restaurantId'];
-    $password = $_POST['password'];
-
-    $sql = "SELECT * FROM restauranteLogin WHERE restauranteId = ? AND senha = ?";
+    $email = trim($_POST['email']);
+    $senha = $_POST['senha'];
     
-    $stmt = $conn->prepare($sql);
-    
-    $stmt->bind_param("is", $restaurantId, $password); 
-
-    $stmt->execute();
-    
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $_SESSION['restaurantId'] = $restaurantId;
-        $_SESSION['password'] = $password;
-
-        header("Location: main.php");
-        exit(); 
+    if (empty($email) || empty($senha)) {
+        $error_message = "Por favor, preencha todos os campos.";
     } else {
-        $error_message = "ID de restaurante ou senha inválidos!";
+        if ($auth->login($email, $senha)) {
+            header("Location: dashboard.php");
+            exit();
+        } else {
+            $error_message = "Email ou senha inválidos!";
+        }
     }
-
-    $stmt->close();
 }
-
-$conn->close();
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(45deg, #8B3A3A, #D2691E); 
-            background-size: 400% 400%;
-            animation: gradientAnimation 10s ease infinite;
-        }
-
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .login-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.9); 
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            color: #8B3A3A; 
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #D2691E; 
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #8B3A3A;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #D2691E; 
-        }
-
-        .error {
-            color: #D2691E;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-    </style>
+    <title>Login - Freydy Restaurant</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
-<body>
-
+<body class="login-page">
     <div class="login-container">
-        <h2>Login</h2>
-        <form action="" method="POST">
-            <div class="input-group">
-                <label for="restaurantId">Restaurant ID:</label>
-                <input type="text" id="restaurantId" name="restaurantId" required>
+        <div class="login-header">
+            <h1>Freydy Restaurant</h1>
+            <p>Sistema de Gerenciamento</p>
+        </div>
+        
+        <form class="login-form" method="POST" action="">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required 
+                       value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
             </div>
-            <div class="input-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+            
+            <div class="form-group">
+                <label for="senha">Senha:</label>
+                <input type="password" id="senha" name="senha" required>
             </div>
-            <button type="submit">Login</button>
-            <?php if ($error_message) { ?>
-                <p class="error"><?php echo $error_message; ?></p>
-            <?php } ?>
+            
+            <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+            
+            <?php if ($error_message): ?>
+                <div class="alert alert-danger">
+                    <?php echo htmlspecialchars($error_message); ?>
+                </div>
+            <?php endif; ?>
         </form>
+        
+        <div class="login-footer">
+            <p>Dados de teste:</p>
+            <ul>
+                <li><strong>Admin:</strong> admin@freydy.com / password</li>
+                <li><strong>Garçom:</strong> joao@freydy.com / password</li>
+                <li><strong>Cozinheiro:</strong> maria@freydy.com / password</li>
+            </ul>
+        </div>
     </div>
-
 </body>
 </html>
