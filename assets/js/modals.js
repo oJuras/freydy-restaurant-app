@@ -125,7 +125,18 @@ class ModalSystem {
             buttons.forEach((btn, index) => {
                 const buttonElement = modal.querySelector(`[data-btn-index="${index}"]`);
                 if (buttonElement && btn.onclick) {
-                    buttonElement.addEventListener('click', btn.onclick);
+                    if (typeof btn.onclick === 'function') {
+                        buttonElement.addEventListener('click', btn.onclick);
+                    } else if (typeof btn.onclick === 'string') {
+                        // Se for uma string, executar como função global
+                        buttonElement.addEventListener('click', () => {
+                            try {
+                                eval(btn.onclick);
+                            } catch (error) {
+                                console.error('Erro ao executar função:', btn.onclick, error);
+                            }
+                        });
+                    }
                 }
             });
         }
