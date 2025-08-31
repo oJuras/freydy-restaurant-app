@@ -45,11 +45,11 @@ class ModalSystem {
         if (this.activeModal) {
             this.activeModal.classList.remove('show');
             setTimeout(() => {
-                if (this.activeModal.parentNode) {
+                if (this.activeModal && this.activeModal.parentNode) {
                     this.activeModal.parentNode.removeChild(this.activeModal);
                 }
+                this.activeModal = null;
             }, 300);
-            this.activeModal = null;
         }
         
         document.removeEventListener('keydown', this.handleEscape.bind(this));
@@ -72,7 +72,7 @@ class ModalSystem {
         header.className = 'modal-header';
         header.innerHTML = `
             <h3>${title}</h3>
-            <button type="button" class="modal-close" onclick="modalSystem.close()">
+            <button type="button" class="modal-close">
                 <i class="fas fa-times"></i>
             </button>
         `;
@@ -87,9 +87,8 @@ class ModalSystem {
         if (options.buttons) {
             footer = `
                 <div class="modal-footer">
-                    ${options.buttons.map(btn => `
-                        <button type="button" class="btn ${btn.class || 'btn-secondary'}" 
-                                onclick="${btn.onclick}">
+                    ${options.buttons.map((btn, index) => `
+                        <button type="button" class="btn ${btn.class || 'btn-secondary'}" data-btn-index="${index}">
                             ${btn.icon ? `<i class="fas fa-${btn.icon}"></i> ` : ''}${btn.text}
                         </button>
                     `).join('')}
@@ -105,14 +104,38 @@ class ModalSystem {
         
         modal.appendChild(modalContent);
         
+        // Adicionar event listeners
+        this.addModalEventListeners(modal, options.buttons);
+        
+        return modal;
+    }
+    
+    /**
+     * Adiciona event listeners ao modal
+     */
+    addModalEventListeners(modal, buttons) {
+        // Botão de fechar
+        const closeBtn = modal.querySelector('.modal-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.close());
+        }
+        
+        // Botões do footer
+        if (buttons) {
+            buttons.forEach((btn, index) => {
+                const buttonElement = modal.querySelector(`[data-btn-index="${index}"]`);
+                if (buttonElement && btn.onclick) {
+                    buttonElement.addEventListener('click', btn.onclick);
+                }
+            });
+        }
+        
         // Fechar ao clicar fora
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 this.close();
             }
         });
-        
-        return modal;
     }
     
     /**
@@ -132,7 +155,7 @@ class ModalSystem {
             {
                 text: 'Cancelar',
                 class: 'btn-secondary',
-                onclick: 'modalSystem.close()'
+                onclick: () => this.close()
             },
             {
                 text: options.submitText || 'Salvar',
@@ -161,7 +184,7 @@ class ModalSystem {
                 text: 'Cancelar',
                 class: 'btn-secondary',
                 onclick: () => {
-                    modalSystem.close();
+                    this.close();
                     if (onCancel) onCancel();
                 }
             },
@@ -170,8 +193,8 @@ class ModalSystem {
                 class: 'btn-danger',
                 icon: 'check',
                 onclick: () => {
-                    modalSystem.close();
                     if (onConfirm) onConfirm();
+                    this.close();
                 }
             }
         ];
