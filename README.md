@@ -6,11 +6,46 @@ Sistema completo de gerenciamento para restaurantes desenvolvido em PHP com arqu
 
 - **Sistema de Autenticação**: Login seguro com diferentes níveis de usuário
 - **Dashboard Interativo**: Visão geral em tempo real do restaurante
-- **Gestão de Pedidos**: Controle completo do fluxo de pedidos
+- **Gestão de Pedidos**: Controle completo do fluxo de pedidos, histórico detalhado
 - **Gestão de Mesas**: Controle de ocupação e status das mesas
-- **Cardápio Digital**: Gerenciamento de produtos e categorias
-- **Relatórios**: Estatísticas e relatórios de vendas
+- **Sistema de Reservas**: Reservas inteligentes com verificação de disponibilidade
+- **Cardápio Digital**: Gerenciamento de produtos, categorias e upload de imagens
+- **Relatórios**: Estatísticas, gráficos e exportação CSV
+- **Backup Automático**: Backup manual e automático do banco e arquivos, restauração e logs
+- **Notificações**: Sistema animado de notificações para o usuário
 - **Interface Responsiva**: Design moderno e adaptável a dispositivos móveis
+
+## 📊 Status das Funcionalidades
+
+| Funcionalidade                        | Status      | Observação                                 |
+|---------------------------------------|-------------|--------------------------------------------|
+| Autenticação/Login                    | ✅ Completo | Sessão, permissões, múltiplos tipos        |
+| Dashboard                             | ✅ Completo | Estatísticas, cards, dados em tempo real   |
+| Pedidos (CRUD + Histórico)            | ✅ Completo | Criação, edição, status, histórico         |
+| Produtos (CRUD + Imagem)              | ✅ Completo | Upload de imagem, categorias, status       |
+| Categorias (CRUD)                     | ✅ Completo | Edição, exclusão, contagem de produtos     |
+| Mesas (CRUD)                          | ✅ Completo | Capacidade, status, ocupação, liberação    |
+| Reservas (CRUD + Disponibilidade)      | ✅ Completo | Filtros, status, verificação de conflitos  |
+| Usuários (CRUD + Permissões)          | ✅ Completo | Tipos de usuário, edição, exclusão         |
+| Relatórios (Dashboard + Exportação)   | ✅ Completo | Gráficos, filtros, exportação CSV          |
+| Configurações do Sistema              | ✅ Completo | Dados do restaurante, senha, gerais        |
+| Notificações (Frontend)               | ✅ Completo | Sistema animado, tipos                     |
+| Modais Reutilizáveis                  | ✅ Completo | Sistema de modais para formulários         |
+| Upload de Imagens                     | ✅ Completo | Produtos, preview, validação               |
+| Backup Manual                         | ✅ Completo | Criação, download, exclusão, integridade   |
+| Backup Automático                     | ✅ Completo | Frequência, script cron, logs, limpeza     |
+| Restauração de Backup                 | ✅ Completo | Apenas admin, restauração total            |
+| Exportação de Dados (CSV)             | ✅ Completo | Pedidos, produtos, mesas, relatórios       |
+| Logs de Backup                        | ✅ Completo | Log detalhado em arquivo                   |
+| Verificação de Integridade            | ✅ Completo | Checagem de arquivos e estrutura           |
+| Documentação do Backup                | ✅ Completo | Arquivo BACKUP_SYSTEM.md                   |
+| Responsividade/UX                     | ✅ Completo | Interface adaptativa, sidebar, cards       |
+| Controle de Permissões                | ✅ Completo | Acesso restrito por tipo de usuário        |
+| Banco de Dados (Schema)               | ✅ Completo | Todas as tabelas, índices, relacionamentos |
+| Scripts de Diagnóstico                | ✅ Completo | Testes de conexão, diagnóstico             |
+| Integração com Pagamentos             | ❌ Pendente | Não implementado (próxima etapa)           |
+| Backup Incremental/Cloud              | ❌ Pendente | Não implementado (melhoria futura)         |
+| Notificações por Email                | ❌ Pendente | Não implementado (melhoria futura)         |
 
 ## 📋 Pré-requisitos
 
@@ -47,28 +82,21 @@ Sistema completo de gerenciamento para restaurantes desenvolvido em PHP com arqu
 
 ```
 freydy-restaurant-app/
-├── api/                    # APIs REST
-│   └── pedidos/
-├── assets/                 # Recursos estáticos
-│   ├── css/
-│   └── js/
+├── api/                    # APIs REST (pedidos, produtos, reservas, backups...)
+├── assets/                 # Recursos estáticos (css, js, imagens)
+├── backups/                # Backups gerados pelo sistema
 ├── config/                 # Configurações
-│   └── database.php
 ├── database/               # Esquemas de banco
-│   └── schema.sql
 ├── includes/               # Includes do sistema
-│   ├── auth.php
-│   ├── header.php
-│   └── sidebar.php
+├── logs/                   # Logs de backup automático
 ├── models/                 # Modelos de dados
-│   ├── Usuario.php
-│   ├── Pedido.php
-│   ├── Produto.php
-│   └── Mesa.php
-├── index.php              # Redirecionamento
-├── login.php              # Página de login
-├── dashboard.php          # Dashboard principal
-└── logout.php             # Logout
+├── scripts/                # Scripts utilitários (backup automático)
+├── uploads/                # Imagens de produtos
+├── index.php               # Redirecionamento
+├── login.php               # Página de login
+├── dashboard.php           # Dashboard principal
+├── backups.php             # Gerenciamento de backups
+└── ...                     # Demais páginas e APIs
 ```
 
 ## 🗄️ Banco de Dados
@@ -83,16 +111,20 @@ freydy-restaurant-app/
 - **pedidos**: Pedidos dos clientes
 - **itens_pedido**: Itens de cada pedido
 - **historico_pedidos**: Histórico de mudanças de status
+- **reservas**: Reservas de mesas
+- **backups**: Backups do sistema
+- **restauracoes_backup**: Histórico de restaurações
+- **configuracoes_backup**: Configuração de backup automático
 - **configuracoes**: Configurações do sistema
 
 ## 👥 Tipos de Usuário
 
 - **Admin**: Acesso total ao sistema
-- **Gerente**: Gestão de usuários, relatórios e configurações
+- **Gerente**: Gestão de usuários, relatórios, backups e configurações
 - **Garçom**: Criação e gestão de pedidos
 - **Cozinheiro**: Visualização e atualização de pedidos
 
-## 🔧 Funcionalidades
+## 🔧 Funcionalidades Detalhadas
 
 ### Dashboard
 - Estatísticas em tempo real
@@ -103,7 +135,7 @@ freydy-restaurant-app/
 ### Gestão de Pedidos
 - Criação de novos pedidos
 - Atualização de status
-- Histórico completo
+- Histórico completo (timeline)
 - Impressão de comandas
 
 ### Gestão de Mesas
@@ -111,22 +143,36 @@ freydy-restaurant-app/
 - Status em tempo real
 - Capacidade das mesas
 
+### Sistema de Reservas
+- CRUD completo de reservas
+- Filtros por data, status e mesa
+- Verificação de disponibilidade
+- Estatísticas de reservas
+
 ### Cardápio
 - Categorias de produtos
 - Gestão de preços
 - Tempo de preparo
 - Status ativo/inativo
+- Upload de imagens
 
-## 🎨 Interface
+### Relatórios
+- Gráficos dinâmicos (Chart.js)
+- Filtros por período
+- Exportação CSV
 
-- Design moderno e responsivo
-- Cores profissionais
-- Ícones Font Awesome
-- Animações suaves
-- Compatível com dispositivos móveis
+### Backup
+- Backup manual e automático
+- Restauração total
+- Logs e verificação de integridade
+- Download ZIP
+- Configuração de frequência e retenção
 
-## 🔒 Segurança
+### Notificações
+- Sistema animado e responsivo
+- Tipos: sucesso, erro, info, warning
 
+### Segurança
 - Autenticação segura com hash de senhas
 - Controle de sessões
 - Validação de permissões
@@ -140,15 +186,14 @@ O sistema é totalmente responsivo e funciona em:
 - Tablet
 - Smartphone
 
-## 🚀 Melhorias Futuras
+## 🔮 Melhorias Futuras
 
-- [ ] Sistema de notificações push
+- [ ] Integração com pagamentos
+- [ ] Backup incremental/cloud
+- [ ] Notificações por email
 - [ ] Integração com delivery
 - [ ] App mobile
-- [ ] Sistema de reservas
-- [ ] Integração com pagamentos
 - [ ] Relatórios avançados
-- [ ] Backup automático
 
 ## 🤝 Contribuição
 
