@@ -140,6 +140,7 @@ $produtos = $produtoModel->listarPorRestaurante($usuario['restaurante_id']);
     
     <script src="assets/js/dashboard.js"></script>
     <script src="assets/js/modals.js"></script>
+    <script src="assets/js/notifications.js"></script>
     <script>
         function filtrarPedidos() {
             const status = document.getElementById('filtro-status').value;
@@ -162,48 +163,111 @@ $produtos = $produtoModel->listarPorRestaurante($usuario['restaurante_id']);
         }
         
         function verDetalhesPedido(pedidoId) {
-            fetch('api/pedidos/detalhes.php?id=' + pedidoId)
-                .then(r => r.json())
+            fetch(`api/pedidos/detalhes-completos.php?id=${pedidoId}`)
+                .then(response => response.json())
                 .then(data => {
-                    if (!data.success) {
-                        alert('Erro: ' + data.message);
-                        return;
-                    }
-                    const p = data.pedido;
-                    const historico = data.historico;
-                    let itensHtml = '';
-                    if (p.itens && p.itens.length) {
-                        itensHtml = `<table class='table'><thead><tr><th>Produto</th><th>Categoria</th><th>Qtd</th><th>Unitário</th><th>Total</th></tr></thead><tbody>`;
-                        p.itens.forEach(item => {
-                            itensHtml += `<tr><td>${item.nome_produto}</td><td>${item.categoria}</td><td>${item.quantidade}</td><td>R$ ${parseFloat(item.preco_unitario).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td><td>R$ ${(item.quantidade*item.preco_unitario).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td></tr>`;
-                        });
-                        itensHtml += '</tbody></table>';
+                    if (data.success) {
+                        const pedido = data.pedido;
+                        
+                        // Gerar HTML dos itens
+                        let itensHtml = '';
+                        if (pedido.itens && pedido.itens.length > 0) {
+                            itensHtml = `
+                                <div class="itens-pedido">
+                                    ${pedido.itens.map(item => `
+                                        <div class="item-pedido">
+                                            <div class="item-info">
+                                                <span class="item-nome">${item.nome_produto}</span>
+                                                <span class="item-categoria">${item.categoria}</span>
+                                            </div>
+                                            <div class="item-detalhes">
+                                                <span class="item-quantidade">${item.quantidade}x</span>
+                                                <span class="item-preco">${item.preco_unitario_formatado}</span>
+                                                <span class="item-subtotal">${item.subtotal_formatado}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        } else {
+                            itensHtml = '<div class="no-data">Nenhum item</div>';
+                        }
+                        
+                        // Gerar HTML do histórico
+                        let historicoHtml = '';
+                        if (pedido.historico && pedido.historico.length > 0) {
+                            historicoHtml = `
+                                <div class="historico-pedido">
+                                    ${pedido.historico.map(h => `
+                                        <div class="historico-item">
+                                            <div class="historico-info">
+                                                <span class="historico-data">${h.data_formatada}</span>
+                                                <span class="historico-usuario">${h.usuario_nome || 'Sistema'}</span>
+                                            </div>
+                                            <div class="historico-status">
+                                                <span class="status-anterior">${h.status_anterior_formatado}</span>
+                                                <i class="fas fa-arrow-right"></i>
+                                                <span class="status-novo">${h.status_novo_formatado}</span>
+                                            </div>
+                                            ${h.observacao ? `<div class="historico-observacao">${h.observacao}</div>` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        } else {
+                            historicoHtml = '<div class="no-data">Sem histórico</div>';
+                        }
+                        
+                        const content = `
+                            <div class="pedido-detalhes">
+                                <div class="form-group">
+                                    <label><strong>Número do Pedido:</strong></label>
+                                    <p>${pedido.numero_pedido}</p>
+                                </div>
+                                <div class="form-group">
+                                    <label><strong>Mesa:</strong></label>
+                                    <p>Mesa ${pedido.numero_mesa}</p>
+                                </div>
+                                <div class="form-group">
+                                    <label><strong>Status:</strong></label>
+                                    <span class="status-badge status-${pedido.status}">${pedido.status.charAt(0).toUpperCase() + pedido.status.slice(1)}</span>
+                                </div>
+                                <div class="form-group">
+                                    <label><strong>Valor Total:</strong></label>
+                                    <p>${pedido.valor_total_formatado}</p>
+                                </div>
+                                <div class="form-group">
+                                    <label><strong>Data:</strong></label>
+                                    <p>${pedido.data_pedido_formatada}</p>
+                                </div>
+                                <div class="form-group">
+                                    <label><strong>Atendente:</strong></label>
+                                    <p>${pedido.nome_usuario}</p>
+                                </div>
+                                ${pedido.observacoes ? `
+                                <div class="form-group">
+                                    <label><strong>Observações:</strong></label>
+                                    <p>${pedido.observacoes}</p>
+                                </div>
+                                ` : ''}
+                                <div class="form-group">
+                                    <label><strong>Itens do Pedido:</strong></label>
+                                    ${itensHtml}
+                                </div>
+                                <div class="form-group">
+                                    <label><strong>Histórico do Pedido:</strong></label>
+                                    ${historicoHtml}
+                                </div>
+                            </div>
+                        `;
+                        modalSystem.open('modalDetalhes', `Detalhes do Pedido #${pedido.numero_pedido}`, content);
                     } else {
-                        itensHtml = '<div class="no-data">Nenhum item</div>';
+                        showNotification('Erro ao carregar detalhes do pedido', 'error');
                     }
-                    let historicoHtml = '';
-                    if (historico && historico.length) {
-                        historicoHtml = `<ul style='padding-left:18px;'>`;
-                        historico.forEach(h => {
-                            historicoHtml += `<li><b>${h.status_novo}</b> por ${h.nome_usuario} em ${new Date(h.data_mudanca).toLocaleString('pt-BR')} ${h.observacao ? '<br><small>'+h.observacao+'</small>' : ''}</li>`;
-                        });
-                        historicoHtml += '</ul>';
-                    } else {
-                        historicoHtml = '<div class="no-data">Sem histórico</div>';
-                    }
-                    const content = `
-                        <div class='pedido-detalhes'>
-                            <div class='form-group'><label><b>Número:</b></label> <span>${p.numero_pedido}</span></div>
-                            <div class='form-group'><label><b>Status:</b></label> <span class='status-badge status-${p.status}'>${p.status}</span></div>
-                            <div class='form-group'><label><b>Mesa:</b></label> <span>${p.numero_mesa}</span></div>
-                            <div class='form-group'><label><b>Data:</b></label> <span>${new Date(p.data_pedido).toLocaleString('pt-BR')}</span></div>
-                            <div class='form-group'><label><b>Valor Total:</b></label> <span>R$ ${parseFloat(p.valor_total).toLocaleString('pt-BR', {minimumFractionDigits:2})}</span></div>
-                            <div class='form-group'><label><b>Observação:</b></label> <span>${p.observacao || '-'}</span></div>
-                            <div class='form-group'><label><b>Itens:</b></label> ${itensHtml}</div>
-                            <div class='form-group'><label><b>Histórico:</b></label> ${historicoHtml}</div>
-                        </div>
-                    `;
-                    modalSystem.open('modalDetalhesPedido', 'Detalhes do Pedido', content);
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    showNotification('Erro ao carregar detalhes do pedido', 'error');
                 });
         }
         
@@ -233,14 +297,15 @@ $produtos = $produtoModel->listarPorRestaurante($usuario['restaurante_id']);
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            showNotification('Status do pedido atualizado com sucesso!', 'success');
                             location.reload();
                         } else {
-                            alert('Erro ao atualizar status: ' + data.message);
+                            showNotification('Erro ao atualizar status: ' + data.message, 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Erro:', error);
-                        alert('Erro ao atualizar status do pedido');
+                        showNotification('Erro ao atualizar status do pedido', 'error');
                     });
                 }
             );
@@ -340,7 +405,7 @@ $produtos = $produtoModel->listarPorRestaurante($usuario['restaurante_id']);
                 }
             });
             if (!mesaId || itens.length === 0 || !valid) {
-                alert('Selecione a mesa e ao menos um produto válido.');
+                showNotification('Selecione a mesa e ao menos um produto válido.', 'warning');
                 return;
             }
             fetch('api/pedidos/criar.php', {
@@ -352,9 +417,10 @@ $produtos = $produtoModel->listarPorRestaurante($usuario['restaurante_id']);
             .then(data => {
                 if (data.success) {
                     modalSystem.close();
+                    showNotification('Pedido criado com sucesso!', 'success');
                     location.reload();
                 } else {
-                    alert('Erro: ' + data.message);
+                    showNotification('Erro: ' + data.message, 'error');
                 }
             });
         }

@@ -15,6 +15,11 @@
             Mesas
         </a>
         
+        <a href="reservas.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'reservas.php' ? 'active' : ''; ?>">
+            <i class="fas fa-calendar-check"></i>
+            Reservas
+        </a>
+        
         <a href="produtos.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'produtos.php' ? 'active' : ''; ?>">
             <i class="fas fa-box"></i>
             Produtos
@@ -39,6 +44,11 @@
         <a href="configuracoes.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'configuracoes.php' ? 'active' : ''; ?>">
             <i class="fas fa-cog"></i>
             Configurações
+        </a>
+        
+        <a href="backups.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'backups.php' ? 'active' : ''; ?>">
+            <i class="fas fa-database"></i>
+            Backups
         </a>
         <?php endif; ?>
     </div>

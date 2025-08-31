@@ -299,4 +299,39 @@ class Pedido {
             throw $e;
         }
     }
+    
+    /**
+     * Busca pedido por ID com verificação de restaurante
+     */
+    public function buscarPorIdComRestaurante($id, $restauranteId) {
+        $sql = "SELECT p.*, m.numero as numero_mesa, u.nome as nome_usuario, r.nome as nome_restaurante
+                FROM pedidos p
+                INNER JOIN mesas m ON p.mesa_id = m.id
+                INNER JOIN usuarios u ON p.usuario_id = u.id
+                INNER JOIN restaurantes r ON p.restaurante_id = r.id
+                WHERE p.id = ? AND p.restaurante_id = ?";
+        
+        $pedido = $this->db->fetch($sql, [$id, $restauranteId]);
+        
+        if ($pedido) {
+            $pedido['itens'] = $this->buscarItensPedido($id);
+            $pedido['historico'] = $this->buscarHistoricoCompleto($id, $restauranteId);
+        }
+        
+        return $pedido;
+    }
+    
+    /**
+     * Busca histórico completo de um pedido (método público)
+     */
+    public function buscarHistoricoCompleto($pedidoId, $restauranteId) {
+        $sql = "SELECT h.*, u.nome as usuario_nome 
+                FROM historico_pedidos h 
+                LEFT JOIN usuarios u ON h.usuario_id = u.id 
+                WHERE h.pedido_id = ? 
+                AND EXISTS (SELECT 1 FROM pedidos p WHERE p.id = h.pedido_id AND p.restaurante_id = ?)
+                ORDER BY h.data_alteracao DESC";
+        
+        return $this->db->fetchAll($sql, [$pedidoId, $restauranteId]);
+    }
 }

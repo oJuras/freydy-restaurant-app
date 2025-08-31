@@ -155,6 +155,7 @@ $mesas = $mesaModel->listarPorRestaurante($usuario['restaurante_id']);
     
     <script src="assets/js/dashboard.js"></script>
     <script src="assets/js/modals.js"></script>
+    <script src="assets/js/notifications.js"></script>
     <script>
         // Dados das mesas para uso nos modais
         let mesasData = <?php echo json_encode($mesas); ?>;
@@ -247,14 +248,15 @@ $mesas = $mesaModel->listarPorRestaurante($usuario['restaurante_id']);
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            showNotification('Mesa ocupada com sucesso!', 'success');
                             location.reload();
                         } else {
-                            alert('Erro: ' + data.message);
+                            showNotification('Erro: ' + data.message, 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Erro:', error);
-                        alert('Erro ao ocupar mesa');
+                        showNotification('Erro ao ocupar mesa', 'error');
                     });
                 }
             );

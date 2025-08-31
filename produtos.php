@@ -152,6 +152,7 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
     
     <script src="assets/js/dashboard.js"></script>
     <script src="assets/js/modals.js"></script>
+    <script src="assets/js/notifications.js"></script>
     <script>
         // Dados dos produtos e categorias para uso nos modais
         let produtosData = <?php echo json_encode($produtos); ?>;
@@ -266,8 +267,18 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="imagem_url">URL da Imagem</label>
-                        <input type="url" id="imagem_url" name="imagem_url" placeholder="https://exemplo.com/imagem.jpg">
+                        <label for="imagem_produto">Imagem do Produto</label>
+                        <div class="upload-container">
+                            <input type="file" id="imagem_produto" name="imagem_produto" accept="image/*" onchange="previewImagem(this)">
+                            <div id="preview-container" class="preview-container" style="display: none;">
+                                <img id="preview-imagem" src="" alt="Preview">
+                                <button type="button" class="btn btn-sm btn-danger" onclick="removerImagem()">
+                                    <i class="fas fa-trash"></i> Remover
+                                </button>
+                            </div>
+                            <input type="hidden" id="imagem_url" name="imagem_url">
+                            <small class="form-text">Formatos aceitos: JPG, PNG, GIF, WebP. Tamanho máximo: 5MB</small>
+                        </div>
                     </div>
                 </form>
             `;
@@ -321,8 +332,18 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="imagem_url">URL da Imagem</label>
-                        <input type="url" id="imagem_url" name="imagem_url" value="${produto.imagem_url || ''}" placeholder="https://exemplo.com/imagem.jpg">
+                        <label for="imagem_produto">Imagem do Produto</label>
+                        <div class="upload-container">
+                            <input type="file" id="imagem_produto" name="imagem_produto" accept="image/*" onchange="previewImagem(this)">
+                            <div id="preview-container" class="preview-container" style="display: ${produto.imagem_url ? 'block' : 'none'};">
+                                <img id="preview-imagem" src="${produto.imagem_url || ''}" alt="Preview">
+                                <button type="button" class="btn btn-sm btn-danger" onclick="removerImagem()">
+                                    <i class="fas fa-trash"></i> Remover
+                                </button>
+                            </div>
+                            <input type="hidden" id="imagem_url" name="imagem_url" value="${produto.imagem_url || ''}">
+                            <small class="form-text">Formatos aceitos: JPG, PNG, GIF, WebP. Tamanho máximo: 5MB</small>
+                        </div>
                     </div>
                 </form>
             `;
@@ -396,6 +417,59 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
             );
         }
         
+        function previewImagem(input) {
+            const file = input.files[0];
+            if (file) {
+                // Validar tamanho (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Arquivo muito grande. Tamanho máximo: 5MB');
+                    input.value = '';
+                    return;
+                }
+
+                // Validar tipo
+                const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                if (!tiposPermitidos.includes(file.type)) {
+                    alert('Tipo de arquivo não permitido. Use apenas JPG, PNG, GIF ou WebP');
+                    input.value = '';
+                    return;
+                }
+
+                // Fazer upload da imagem
+                const formData = new FormData();
+                formData.append('imagem', file);
+
+                fetch('api/produtos/upload-imagem.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('imagem_url').value = data.url;
+                        document.getElementById('preview-imagem').src = data.url;
+                        document.getElementById('preview-container').style.display = 'block';
+                        showNotification('Imagem enviada com sucesso!', 'success');
+                    } else {
+                        alert('Erro ao enviar imagem: ' + data.message);
+                        input.value = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao enviar imagem');
+                    input.value = '';
+                });
+            }
+        }
+
+        function removerImagem() {
+            document.getElementById('imagem_url').value = '';
+            document.getElementById('preview-imagem').src = '';
+            document.getElementById('preview-container').style.display = 'none';
+            document.getElementById('imagem_produto').value = '';
+        }
+
         function salvarNovoProduto() {
             const form = document.getElementById('formNovoProduto');
             const formData = new FormData(form);
@@ -419,14 +493,15 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
             .then(data => {
                 if (data.success) {
                     modalSystem.close();
+                    showNotification('Produto criado com sucesso!', 'success');
                     location.reload();
                 } else {
-                    alert('Erro: ' + data.message);
+                    showNotification('Erro: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Erro:', error);
-                alert('Erro ao criar produto');
+                showNotification('Erro ao criar produto', 'error');
             });
         }
         
@@ -454,14 +529,15 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
             .then(data => {
                 if (data.success) {
                     modalSystem.close();
+                    showNotification('Produto atualizado com sucesso!', 'success');
                     location.reload();
                 } else {
-                    alert('Erro: ' + data.message);
+                    showNotification('Erro: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Erro:', error);
-                alert('Erro ao atualizar produto');
+                showNotification('Erro ao atualizar produto', 'error');
             });
         }
     </script>

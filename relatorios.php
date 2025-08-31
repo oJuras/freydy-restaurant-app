@@ -31,6 +31,17 @@ $usuario = $auth->getUsuario();
                     <input type="date" id="data-fim">
                 </div>
                 <button class="btn btn-primary" onclick="carregarRelatorios()"><i class="fas fa-search"></i> Filtrar</button>
+                <div class="export-buttons">
+                    <button class="btn btn-success" onclick="exportarRelatorio('pedidos')">
+                        <i class="fas fa-download"></i> Exportar Pedidos
+                    </button>
+                    <button class="btn btn-info" onclick="exportarRelatorio('produtos')">
+                        <i class="fas fa-download"></i> Exportar Produtos
+                    </button>
+                    <button class="btn btn-warning" onclick="exportarRelatorio('mesas')">
+                        <i class="fas fa-download"></i> Exportar Mesas
+                    </button>
+                </div>
             </div>
             <div id="relatoriosResumo" class="stats-grid"></div>
             <div class="dashboard-sections">
@@ -50,6 +61,7 @@ $usuario = $auth->getUsuario();
         </main>
     </div>
     <script src="assets/js/dashboard.js"></script>
+    <script src="assets/js/notifications.js"></script>
     <script>
         function carregarRelatorios() {
             const inicio = document.getElementById('data-inicio').value;
@@ -60,8 +72,10 @@ $usuario = $auth->getUsuario();
                     if (data.success) {
                         renderResumo(data.resumo);
                         renderGraficos(data);
+                        showNotification('Relatórios carregados com sucesso!', 'success');
                     } else {
                         document.getElementById('relatoriosResumo').innerHTML = '<div class="no-data">Erro ao carregar relatórios</div>';
+                        showNotification('Erro ao carregar relatórios', 'error');
                     }
                 });
         }
@@ -144,6 +158,26 @@ $usuario = $auth->getUsuario();
                 options: {responsive:true}
             });
         }
+
+        function exportarRelatorio(tipo) {
+            const inicio = document.getElementById('data-inicio').value;
+            const fim = document.getElementById('data-fim').value;
+            
+            let url = `api/relatorios/exportar-csv.php?tipo=${tipo}`;
+            if (inicio) url += `&inicio=${inicio}`;
+            if (fim) url += `&fim=${fim}`;
+            
+            // Criar link temporário para download
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `relatorio_${tipo}_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification(`Relatório de ${tipo} exportado com sucesso!`, 'success');
+        }
+
         window.onload = carregarRelatorios;
     </script>
 </body>

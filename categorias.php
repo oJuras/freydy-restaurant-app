@@ -157,6 +157,7 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
     
     <script src="assets/js/dashboard.js"></script>
     <script src="assets/js/modals.js"></script>
+    <script src="assets/js/notifications.js"></script>
     <script>
         // Dados das categorias para uso nos modais
         let categoriasData = <?php echo json_encode($categorias); ?>;
@@ -262,14 +263,15 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            showNotification('Status da categoria alterado com sucesso!', 'success');
                             location.reload();
                         } else {
-                            alert('Erro: ' + data.message);
+                            showNotification('Erro: ' + data.message, 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Erro:', error);
-                        alert('Erro ao alterar status da categoria');
+                        showNotification('Erro ao alterar status da categoria', 'error');
                     });
                 }
             );
@@ -290,14 +292,15 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            showNotification('Categoria excluída com sucesso!', 'success');
                             location.reload();
                         } else {
-                            alert('Erro: ' + data.message);
+                            showNotification('Erro: ' + data.message, 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Erro:', error);
-                        alert('Erro ao excluir categoria');
+                        showNotification('Erro ao excluir categoria', 'error');
                     });
                 }
             );
@@ -322,14 +325,15 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
             .then(data => {
                 if (data.success) {
                     modalSystem.close();
+                    showNotification('Categoria criada com sucesso!', 'success');
                     location.reload();
                 } else {
-                    alert('Erro: ' + data.message);
+                    showNotification('Erro: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Erro:', error);
-                alert('Erro ao criar categoria');
+                showNotification('Erro ao criar categoria', 'error');
             });
         }
         
@@ -353,14 +357,15 @@ $categorias = $categoriaModel->listarPorRestaurante($usuario['restaurante_id']);
             .then(data => {
                 if (data.success) {
                     modalSystem.close();
+                    showNotification('Categoria atualizada com sucesso!', 'success');
                     location.reload();
                 } else {
-                    alert('Erro: ' + data.message);
+                    showNotification('Erro: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Erro:', error);
-                alert('Erro ao atualizar categoria');
+                showNotification('Erro ao atualizar categoria', 'error');
             });
         }
     </script>

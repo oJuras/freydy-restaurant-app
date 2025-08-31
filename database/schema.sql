@@ -134,6 +134,94 @@ CREATE TABLE configuracoes (
     UNIQUE KEY unique_config_restaurante (restaurante_id, chave)
 );
 
+-- Tabela de reservas
+CREATE TABLE IF NOT EXISTS reservas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    restaurante_id INT NOT NULL,
+    mesa_id INT NOT NULL,
+    nome_cliente VARCHAR(100) NOT NULL,
+    telefone VARCHAR(20) NOT NULL,
+    email VARCHAR(100),
+    data_reserva DATE NOT NULL,
+    hora_reserva TIME NOT NULL,
+    numero_pessoas INT NOT NULL,
+    observacoes TEXT,
+    status ENUM('confirmada', 'pendente', 'cancelada', 'concluida') DEFAULT 'pendente',
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurante_id) REFERENCES restaurantes(id) ON DELETE CASCADE,
+    FOREIGN KEY (mesa_id) REFERENCES mesas(id) ON DELETE CASCADE
+);
+
+-- Índices para melhor performance
+CREATE INDEX idx_reservas_restaurante ON reservas(restaurante_id);
+CREATE INDEX idx_reservas_mesa ON reservas(mesa_id);
+CREATE INDEX idx_reservas_data ON reservas(data_reserva);
+CREATE INDEX idx_reservas_status ON reservas(status);
+
+-- Tabela de histórico de pedidos
+CREATE TABLE IF NOT EXISTS historico_pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    status_anterior VARCHAR(50),
+    status_novo VARCHAR(50) NOT NULL,
+    observacao TEXT,
+    usuario_id INT,
+    data_alteracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+-- Índices para histórico
+CREATE INDEX idx_historico_pedido ON historico_pedidos(pedido_id);
+CREATE INDEX idx_historico_data ON historico_pedidos(data_alteracao);
+
+-- Tabela de backups
+CREATE TABLE IF NOT EXISTS backups (
+    id VARCHAR(32) PRIMARY KEY,
+    restaurante_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    tipo ENUM('completo', 'banco', 'arquivos') NOT NULL,
+    caminho VARCHAR(500) NOT NULL,
+    metadados JSON,
+    tamanho BIGINT DEFAULT 0,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurante_id) REFERENCES restaurantes(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+-- Tabela de restaurações de backup
+CREATE TABLE IF NOT EXISTS restauracoes_backup (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    backup_id VARCHAR(32) NOT NULL,
+    restaurante_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    data_restauracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (backup_id) REFERENCES backups(id) ON DELETE CASCADE,
+    FOREIGN KEY (restaurante_id) REFERENCES restaurantes(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+-- Tabela de configurações de backup automático
+CREATE TABLE IF NOT EXISTS configuracoes_backup (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    restaurante_id INT NOT NULL,
+    frequencia ENUM('diario', 'semanal', 'mensal') DEFAULT 'diario',
+    hora_execucao TIME DEFAULT '02:00:00',
+    manter_backups INT DEFAULT 10,
+    ativo BOOLEAN DEFAULT TRUE,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurante_id) REFERENCES restaurantes(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_config_restaurante (restaurante_id)
+);
+
+-- Índices para backups
+CREATE INDEX idx_backups_restaurante ON backups(restaurante_id);
+CREATE INDEX idx_backups_data ON backups(data_criacao);
+CREATE INDEX idx_restauracoes_backup ON restauracoes_backup(backup_id);
+CREATE INDEX idx_restauracoes_data ON restauracoes_backup(data_restauracao);
+
 -- Inserção de dados de exemplo
 INSERT INTO restaurantes (nome, cnpj, endereco, telefone, email) VALUES
 ('Restaurante Freydy', '12.345.678/0001-90', 'Rua das Flores, 123 - Centro', '(11) 99999-9999', 'contato@freydy.com');
