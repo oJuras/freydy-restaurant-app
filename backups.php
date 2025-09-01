@@ -94,12 +94,12 @@ $ultimoBackup = $totalBackups > 0 ? $backups[0]['data_criacao'] : null;
             <!-- Ações Principais -->
             <div class="actions-section">
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="criarBackup()">
+                <button class="btn btn-primary" onclick="criarBackup()">
                         <i class="fas fa-plus"></i> Criar Backup Manual
-                    </button>
+                </button>
                     <button class="btn btn-secondary" onclick="abrirModalConfiguracao()">
-                        <i class="fas fa-cog"></i> Configurar Backup Automático
-                    </button>
+                    <i class="fas fa-cog"></i> Configurar Backup Automático
+                </button>
                     <button class="btn btn-info" onclick="verificarIntegridade()">
                         <i class="fas fa-shield-alt"></i> Verificar Integridade
                     </button>
@@ -115,37 +115,37 @@ $ultimoBackup = $totalBackups > 0 ? $backups[0]['data_criacao'] : null;
                     </div>
                 </div>
                 
-                <?php if (empty($backups)): ?>
-                    <div class="empty-state">
-                        <i class="fas fa-database"></i>
-                        <h3>Nenhum backup encontrado</h3>
+                    <?php if (empty($backups)): ?>
+                        <div class="empty-state">
+                            <i class="fas fa-database"></i>
+                            <h3>Nenhum backup encontrado</h3>
                         <p>Crie seu primeiro backup para proteger os dados do sistema.</p>
-                        <button class="btn btn-primary" onclick="criarBackup()">
-                            <i class="fas fa-plus"></i> Criar Primeiro Backup
-                        </button>
-                    </div>
-                <?php else: ?>
+                            <button class="btn btn-primary" onclick="criarBackup()">
+                                <i class="fas fa-plus"></i> Criar Primeiro Backup
+                            </button>
+                        </div>
+                    <?php else: ?>
                     <div class="backups-grid" id="backupsGrid">
-                        <?php foreach ($backups as $backup): ?>
+                                <?php foreach ($backups as $backup): ?>
                             <div class="backup-card" data-backup-id="<?php echo $backup['id']; ?>">
                                 <div class="backup-header">
                                     <div class="backup-type">
                                         <i class="fas fa-<?php echo $backup['tipo'] == 'completo' ? 'database' : ($backup['tipo'] == 'banco' ? 'server' : 'folder'); ?>"></i>
                                         <span class="backup-type-label"><?php echo ucfirst($backup['tipo']); ?></span>
-                                    </div>
+                                            </div>
                                     <div class="backup-actions">
                                         <button class="btn-icon" onclick="verDetalhesBackup('<?php echo $backup['id']; ?>')" title="Ver detalhes">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
                                         <button class="btn-icon" onclick="restaurarBackup('<?php echo $backup['id']; ?>')" title="Restaurar">
-                                            <i class="fas fa-undo"></i>
-                                        </button>
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
                                         <button class="btn-icon btn-danger" onclick="excluirBackup('<?php echo $backup['id']; ?>')" title="Excluir">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+    </div>
+    
                                 <div class="backup-info">
                                     <div class="backup-details">
                                         <div class="backup-item">
@@ -155,31 +155,31 @@ $ultimoBackup = $totalBackups > 0 ? $backups[0]['data_criacao'] : null;
                                         <div class="backup-item">
                                             <span class="label">Data:</span>
                                             <span class="value"><?php echo date('d/m/Y H:i', strtotime($backup['data_criacao'])); ?></span>
-                                        </div>
+            </div>
                                         <div class="backup-item">
                                             <span class="label">Tamanho:</span>
                                             <span class="value"><?php echo $this->formatBytes($backup['tamanho']); ?></span>
-                                        </div>
+            </div>
                                         <div class="backup-item">
                                             <span class="label">Usuário:</span>
                                             <span class="value"><?php echo htmlspecialchars($backup['nome_usuario'] ?? 'Sistema'); ?></span>
-                                        </div>
-                                    </div>
-                                    
+        </div>
+    </div>
+    
                                     <div class="backup-status">
                                         <span class="status-badge status-ativo">
                                             <i class="fas fa-check"></i> Disponível
                                         </span>
-                                    </div>
-                                </div>
-                            </div>
+            </div>
+                    </div>
+                    </div>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
-            </div>
+                    </div>
         </main>
-    </div>
-    
+                    </div>
+                    
     <!-- Scripts -->
     <script src="assets/js/dashboard.js"></script>
     <script src="assets/js/modals.js"></script>
@@ -254,18 +254,18 @@ $ultimoBackup = $totalBackups > 0 ? $backups[0]['data_criacao'] : null;
                                         <div class="detail-item">
                                             <span class="label">Tipo:</span>
                                             <span class="value">${backup.tipo}</span>
-                                        </div>
+                                </div>
                                         <div class="detail-item">
                                             <span class="label">Data:</span>
                                             <span class="value">${new Date(backup.data_criacao).toLocaleString('pt-BR')}</span>
-                                        </div>
+                                </div>
                                         <div class="detail-item">
                                             <span class="label">Tamanho:</span>
                                             <span class="value">${formatBytes(backup.tamanho)}</span>
-                                        </div>
-                                    </div>
                                 </div>
-                                
+                                </div>
+                                </div>
+                        
                                 <div class="detail-section">
                                     <h4>Conteúdo do Backup</h4>
                                     <div class="backup-content">
@@ -273,15 +273,15 @@ $ultimoBackup = $totalBackups > 0 ? $backups[0]['data_criacao'] : null;
                                             <i class="fas fa-database"></i>
                                             <span>Banco de Dados</span>
                                             <span class="content-size">${formatBytes(metadata.database?.size || 0)}</span>
-                                        </div>
+                                    </div>
                                         <div class="content-item">
                                             <i class="fas fa-folder"></i>
                                             <span>Arquivos do Sistema</span>
                                             <span class="content-size">${metadata.files?.length || 0} diretórios</span>
-                                        </div>
+                                    </div>
                                     </div>
                                 </div>
-                                
+                        
                                 <div class="detail-section">
                                     <h4>Ações</h4>
                                     <div class="action-buttons">
@@ -292,9 +292,9 @@ $ultimoBackup = $totalBackups > 0 ? $backups[0]['data_criacao'] : null;
                                             <i class="fas fa-download"></i> Download
                                         </button>
                                     </div>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
+                            `;
                         
                         modalSystem.open('modalDetalhes', `Detalhes do Backup`, content);
                     } else {
@@ -434,27 +434,27 @@ $ultimoBackup = $totalBackups > 0 ? $backups[0]['data_criacao'] : null;
                     };
                     
                     fetch('api/backups/configurar.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                         body: JSON.stringify(config)
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
                             showNotification('Configuração salva com sucesso!', 'success');
-                            modalSystem.close();
+                    modalSystem.close();
                             setTimeout(() => {
                                 window.location.reload();
                             }, 1000);
-                        } else {
+                } else {
                             showNotification('Erro ao salvar configuração: ' + data.error, 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro:', error);
-                        showNotification('Erro ao salvar configuração', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showNotification('Erro ao salvar configuração', 'error');
                     });
                 }
             );

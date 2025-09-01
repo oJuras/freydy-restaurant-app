@@ -93,18 +93,6 @@ function toggleSidebar() {
     sidebar.classList.toggle('open');
 }
 
-// Adiciona listener para fechar sidebar ao clicar fora
-document.addEventListener('click', function(event) {
-    const sidebar = document.querySelector('.sidebar');
-    const sidebarToggle = document.querySelector('.sidebar-toggle');
-    
-    if (sidebar && sidebar.classList.contains('open') && 
-        !sidebar.contains(event.target) && 
-        !sidebarToggle.contains(event.target)) {
-        sidebar.classList.remove('open');
-    }
-});
-
 // Função para formatar valores monetários
 function formatarMoeda(valor) {
     return new Intl.NumberFormat('pt-BR', {
@@ -211,4 +199,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    var sidebar = document.getElementById('sidebarNav');
+    var overlay = document.getElementById('sidebarOverlay');
+    var toggle = document.getElementById('sidebarToggle');
+    if (toggle && sidebar && overlay) {
+        toggle.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+        });
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('open');
+            overlay.style.display = 'none';
+        });
+        // Fechar sidebar ao pressionar ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                sidebar.classList.remove('open');
+                overlay.style.display = 'none';
+            }
+        });
+    }
 });
